@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import { useState } from "react";
 import "./TaskManager.css";
+import { useTaskManger } from "../hooks/TaskManagerHook";
 
   // Task type
   type Task = {
@@ -11,22 +12,24 @@ import "./TaskManager.css";
 // TODO: create custom hook to manage task state
 export const TaskManager = () => {
   const [title, setTitle] = useState("");
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const [tasks, setTasks] = useState([] as Task[]);
+  const {
+    searchTask,
+    updateTask,
+    deleteTask,
+    filterTasks,
+    saveNewTask} = useTaskManger();
 
   // remove task from list
   const completeTask = (id: string) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+    deleteTask(id);
   };
 
-  const updateTask = (id: string, titleUpdate: string) => {
-    const newTasks = tasks.slice();
-
-    const index = tasks.findIndex((task) => task.id === id);
-
-    newTasks[index].title = titleUpdate;
-
-    setTasks(newTasks);
+  const updateTasks = (id: string, updatedTitle: string) => {
+    const updatedTask = {
+      id,
+      title: updatedTitle
+    }
+    updateTask(id,updatedTask)
   };
 
   const addTask = () => {
@@ -39,17 +42,14 @@ export const TaskManager = () => {
       id: nanoid(),
       title,
     };
-    setTasks((prev) => prev.concat(newTask));
+    saveNewTask(newTask);
     setTitle("");
   };
 
-  const handleSearch = (ev: string) => {
-    setSearchKeyword(ev);
+  const handleSearch = (keyword: string) => {
+    searchTask(keyword)
   };
 
-  const filteredTasks = tasks.filter((task) =>
-    task.title.toLowerCase().includes(searchKeyword.toLowerCase()),
-  );
 
   return (
     <div className="container">
@@ -74,14 +74,14 @@ export const TaskManager = () => {
       </div>
 
       <ul className="container">
-        {filteredTasks.map((task) => (
+        {filterTasks.map((task) => (
           <li key={task.id} className="task">
             <div className="task">
               <input
                 type="text"
                 placeholder="Add new task"
                 value={task.title}
-                onChange={(e) => updateTask(task.id, e.target.value )}
+                onChange={(e) => updateTasks(task.id, e.target.value )}
               />
               <button onClick={() => completeTask(task.id)}>Done</button>
             </div>
